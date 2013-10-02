@@ -1,0 +1,6 @@
+<template name="formBuilder_checkbox">
+    <label for="{{name}}" class="pure-checkbox">
+        <input type="checkbox" name="{{name}}" id="{{name}}"{{#if disable}} disabled="disabled"{{/if}}{{#if value}} checked="checked"{{/if}}>
+        {{label}}
+    </label>
+</template>

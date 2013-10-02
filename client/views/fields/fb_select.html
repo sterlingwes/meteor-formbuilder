@@ -1,0 +1,8 @@
+<template name="formBuilder_select">
+    <label for="{{name}}">{{label}}</label>
+    <select name="{{name}}" id="{{name}}"{{#if size}} size="{{size}}"{{/if}} {{multiple}} {{autofocus}}>
+        {{#each option}}
+            <option value="{{value}}" {{selected}}>{{text}}</option>
+        {{/each}}
+    </select>
+</template>

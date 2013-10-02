@@ -1,0 +1,6 @@
+<template name="formBuilder_textarea">
+    <label for="{{name}}">{{label}}</label>
+    <textarea name="{{name}}" id="{{name}}"{{#if __first}} autocomplete="autocomplete"{{/if}}>
+        {{value}}
+    </textarea>
+</template>

@@ -1,0 +1,38 @@
+<template name="formBuilder">
+    {{#if formerror}}
+    <p class="formerror"><i class="icon-exclamation-sign"></i> There were problems with your submission.</p>
+    {{/if}}
+    <form id="form_{{ name }}" class="pure-form {{formClass}}" data-call="{{method}}" data-done="{{routeTo}}" data-id="{{itemId}}">
+        <fieldset>
+            {{#eachIs fields}}
+                {{#labelBranch __count}}
+                    {{#if fieldShow ../..}}
+                    <div class="{{ groupClass }}{{hideClass}}">
+                        {{buildInput this ../../..}}
+                        {{#if hint}}
+                            <i class="icon-question-sign fb_formhelp" data-hint="{{getHint}}"></i>
+                        {{/if}}
+                        {{#if formerror name}}
+                            {{#each formerror name}}
+                                <div class="pure-controls fielderror">{{message}}</div>
+                            {{/each}}
+                        {{/if}}
+                    </div>
+                    {{else}}
+                        <input type="hidden" name="{{this.name}}" value="{{getOnlyValue ../..}}">
+                    {{/if}}
+                {{/labelBranch}}
+            {{/eachIs}}
+            
+            {{#each hidden}}
+                <input type="hidden" name="{{this.name}}" value="{{this.value}}">
+            {{/each}}
+            
+            <div class="pure-controls">
+                {{#each button}}
+                <button class="pure-button {{ classn }} buffer" name="{{ name }}"{{#if disableButtons}} disabled="disabled"{{/if}}>{{ text }}</button>
+                {{/each}}
+            </div>
+        </fieldset>
+    </form>
+</template>
