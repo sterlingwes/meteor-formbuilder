@@ -240,10 +240,6 @@ FormBuilder = (function() {
                         return options[0];
                 },
                 
-                getHint: function() {
-                    return quoteAttr(this.hint);
-                },
-                
                 // core logic for building our form fields
                 // - field: current field we're building
                 // - parent: the context object passed to formBuilder
@@ -266,6 +262,9 @@ FormBuilder = (function() {
                     if(!fieldContext.label) fieldContext.label = field.name;
                     if(field.__isFirst)     fieldContext.autofocus = "autofocus";
                     if(field.multi)         fieldContext.multiple = "multiple";
+                    
+                    if(typeof field.hint === "string")
+                        fieldContext.hint = quoteAttr(field.hint);
                     
                     switch(field.input) {
                         
@@ -337,7 +336,7 @@ FormBuilder = (function() {
                             }),false);
                             
                             if(field.input==SELECTMULTI) {
-                                fieldContext.multi = true;
+                                fieldContext.multiple = "multiple";
                                 fieldContext.size = fieldContext.size || _.min([5,fieldContext.option.length]);
                             }
                             break;
@@ -521,13 +520,16 @@ FormBuilder = (function() {
                                     break;
                                 case "addPoolTeam":
                                     var pool = data.pool.toLowerCase().split(', '),
-                                        upd = {};
+                                        upd = {},
+                                        poolteams = false;
                                     upd.$addToSet = {};
-                                    upd.$addToSet['pools.'+pool.join('.')] = _.isArray(data.team) ? {$each:data.team} : data.team;
-                                    console.log(data,upd);
-                                    Events.update(Router.get('target'), upd, function() {
-                                        responseHandler.apply(respCtx, arguments);
-                                    });
+                                    poolteams = _.isArray(data.team) ? {$each:data.team} : (data.team || false);
+                                    if(poolteams) {
+                                        upd.$addToSet['pools.'+pool.join('.')] = poolteams;
+                                        Events.update(Router.get('target'), upd, function() {
+                                            responseHandler.apply(respCtx, arguments);
+                                        });
+                                    }
                                     break;
                                 case "addCrmField":
                                     var set = {};
@@ -597,21 +599,6 @@ FormBuilder = (function() {
             
             Template.formBuilder.created = function() {
                 Session.set('formerror', false);
-                if(this.data && (this.data.proto || this.data.schema)) {
-                    var schema = this.data.schema || this.data.proto._simpleSchema._schema;
-                    
-                    // find anything that need jQuery UI
-                    var req = _.some(schema, function(cfg) {
-                        return _.contains([SixC.Forms.DATE, SixC.Forms.DATETIME], cfg.input) || cfg.hint;
-                    });
-                    
-                    if(req) {
-                        Meteor.Loader.loadCss('/lib/jquery-ui/jquery-ui-1.10.3.custom.min.css');
-                        Meteor.Loader.loadJs('/lib/jquery-ui/jquery-ui-1.10.3.custom.min.js', function() {
-                            Session.set('hasJqueryUI',true);
-                        });
-                    }
-                }
             };
             
             // applies libraries to third party form fields
@@ -644,15 +631,13 @@ FormBuilder = (function() {
                         });
                     });
                     
-                    Session.whenTrue('hasJqueryUI', function() {
-                        $('form').tooltip({
-                            items:  "i.fb_formhelp",
-                            content: function() {
-                                var el = $(this),
-                                    hint = el.data('hint');
-                                return unquoteAttr(hint);
-                            }
-                        });
+                    $('form').tooltip({
+                        items:  "i.fb_formhelp",
+                        content: function() {
+                            var el = $(this),
+                                hint = el.data('hint');
+                            return unquoteAttr(hint);
+                        }
                     });
                 }
             };

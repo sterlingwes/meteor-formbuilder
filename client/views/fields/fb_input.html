@@ -1,4 +1,10 @@
 <template name="formBuilder_input">
-    <label for="{{name}}">{{label}}</label>
+    <label for="{{name}}">
+        {{label}}
+        
+        {{#if hint}}
+            <i class="icon-question-sign fb_formhelp" data-hint="{{hint}}"></i>
+        {{/if}}
+    </label>
     <input type="{{type}}" name="{{name}}" id="{{name}}" class="{{classn}}" value="{{value}}" {{autofocus}}>
 </template>

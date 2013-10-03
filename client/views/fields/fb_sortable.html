@@ -1,4 +1,9 @@
 <template name="formBuilder_sortable">
-    <label style="display:block">{{label}}</label><br>
+    <label style="display:block">
+        {{label}}
+        {{#if hint}}
+            <i class="icon-question-sign fb_formhelp" data-hint="{{hint}}"></i>
+        {{/if}}
+    </label><br>
     {{field}}
 </template>

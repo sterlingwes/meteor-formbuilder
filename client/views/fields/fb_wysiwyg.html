@@ -1,4 +1,9 @@
 <template name="formBuilder_wysiwyg">
-    <label>{{label}}</label>
+    <label>
+        {{label}}
+        {{#if hint}}
+            <i class="icon-question-sign fb_formhelp" data-hint="{{hint}}"></i>
+        {{/if}}
+    </label>
     {{field}}
 </template>

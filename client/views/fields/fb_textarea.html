@@ -1,5 +1,10 @@
 <template name="formBuilder_textarea">
-    <label for="{{name}}">{{label}}</label>
+    <label for="{{name}}">
+        {{label}}
+        {{#if hint}}
+            <i class="icon-question-sign fb_formhelp" data-hint="{{hint}}"></i>
+        {{/if}}
+    </label>
     <textarea name="{{name}}" id="{{name}}"{{#if __first}} autocomplete="autocomplete"{{/if}}>
         {{value}}
     </textarea>

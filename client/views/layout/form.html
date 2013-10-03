@@ -9,9 +9,6 @@
                     {{#if fieldShow ../..}}
                     <div class="{{ groupClass }}{{hideClass}}">
                         {{buildInput this ../../..}}
-                        {{#if hint}}
-                            <i class="icon-question-sign fb_formhelp" data-hint="{{getHint}}"></i>
-                        {{/if}}
                         {{#if formerror name}}
                             {{#each formerror name}}
                                 <div class="pure-controls fielderror">{{message}}</div>
