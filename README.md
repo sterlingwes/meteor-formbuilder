@@ -29,6 +29,7 @@ options = {
             field:  'value'
         };
     },
+    onChange:   function() {},
     onSubmit:   function() {
         // called before attempting processing
         return false; // return false to abort beforehand

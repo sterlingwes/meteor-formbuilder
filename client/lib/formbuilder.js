@@ -151,6 +151,28 @@ FormBuilder = (function() {
             return s;
         },
         
+        getFormData = function(form) {
+            
+            if(!form || !form.length)   return {};
+            
+            var vals = form.serialize(),
+                data = {};
+    
+            _.each(vals.split('&'),function(v) {
+                var pair = v.split('=');
+                if(data[pair[0]] && !_.isArray(data[pair[0]])) {
+                    data[pair[0]] = [data[pair[0]]];
+                }
+                else if(!data[pair[0]])
+                  data[pair[0]] = pair[1] ? decodeURIComponent(pair[1].replace(/\+/g,' ')) : undefined;
+                
+                if(_.isArray(data[pair[0]]))
+                    data[pair[0]].push((pair[1] ? decodeURIComponent(pair[1].replace(/\+/g,' ')) : undefined));
+            });
+            
+            return data;
+        },
+        
         init = function() {
             
             Template.formBuilder.helpers({
@@ -224,7 +246,7 @@ FormBuilder = (function() {
                 // with the value set to the one option value
                 
                 fieldShow: function(parent) {
-                    if(this.input == SixC.Forms.SELECT) {
+                    if([SixC.Forms.SELECT,SixC.Forms.SELECTMULTI].indexOf(this.input) != -1 && !this.showAnyway) {
                         return getFormOpts(this.opts).length > 1;
                     }
                     return true;
@@ -251,6 +273,7 @@ FormBuilder = (function() {
                     
                     if(!field.input && field.text) {
                         fieldContext.value = new Handlebars.SafeString(field.text);
+                        return new Handlebars.SafeString(Template['formBuilder_text'](fieldContext));
                     }
                     else if(!field.input)
                         return; // don't continue if there's no field type otherwise
@@ -324,7 +347,7 @@ FormBuilder = (function() {
                                 
                                 ret = {
                                     text:   o.text || o.value,
-                                    value:  o.value || o.text
+                                    value:  typeof o.value !== "string" && typeof o.value !== "number" ? o.text : o.value
                                 };
                                 
                                 if((_.isArray(vals[field.name]) && vals[field.name].indexOf(o.value||o.text)!=-1)
@@ -377,6 +400,14 @@ FormBuilder = (function() {
             // handles parsing data, db ops and callbacks
             
             Template.formBuilder.events({
+                
+                'change input, change select': function(evt,tpl) {
+                    if(tpl && tpl.data && typeof tpl.data.onChange === "function") {
+                        var form = tpl.data.name ? $('#form_'+tpl.data.name) : $('form');
+                        tpl.data.onChange(evt, getFormData(form));
+                    }
+                },
+                
                 'submit form': function(evt,ctx) {
                     evt.preventDefault();
                     
@@ -397,22 +428,11 @@ FormBuilder = (function() {
                     formbtns.attr('disabled',true);
                     
                     if(!form.length) return false;
-                    var vals = form.serialize(),
-                    data = {};
+
+                    var data = getFormData(form);
+                    
                     if(form.data('clearonsubmit'))
                         form[0].reset();
-            
-                    _.each(vals.split('&'),function(v) {
-                        var pair = v.split('=');
-                        if(data[pair[0]] && !_.isArray(data[pair[0]])) {
-                            data[pair[0]] = [data[pair[0]]];
-                        }
-                        else if(!data[pair[0]])
-                          data[pair[0]] = pair[1] ? decodeURIComponent(pair[1].replace(/\+/g,' ')) : undefined;
-                        
-                        if(_.isArray(data[pair[0]]))
-                            data[pair[0]].push((pair[1] ? decodeURIComponent(pair[1].replace(/\+/g,' ')) : undefined));
-                    });
                     
                     var multitext = _.find(schema, function(cfg) {
                         return cfg.input==SixC.Forms.MULTITEXT;
