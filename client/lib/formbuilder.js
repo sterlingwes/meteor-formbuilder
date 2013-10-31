@@ -19,6 +19,7 @@ FormBuilder = (function() {
         RADIO=          17,
         MULTITEXT=      18,
         SORTABLE=       19,
+		FILE=			100,
         
         getFieldTpl = function(code) {
             if(typeof code === "string")    return code;
@@ -48,6 +49,7 @@ FormBuilder = (function() {
                 case NUMBER:
                 case PHONE:
                 case WEBURL:
+				case FILE:
                 default:
                     return 'formBuilder_input';
     
@@ -157,6 +159,13 @@ FormBuilder = (function() {
             
             var vals = form.serialize(),
                 data = {};
+				
+			// check for file inputs
+			var filesin = $('input[type=file]');
+			if(filesin.length)
+				_.each(filesin.get(), function(inp) {
+					if(inp.files)	data[inp.name] = inp.files;
+				});
     
             _.each(vals.split('&'),function(v) {
                 var pair = v.split('=');
@@ -301,19 +310,13 @@ FormBuilder = (function() {
                                 type:   "text",     // consider using native (check first)
                                 classn: field.input==DATETIME ? "datetimepicker" : "datepicker"
                             });
+							fieldContext.value = fieldContext.value ? moment(fieldContext.value).format('YYYY/M/D h:mm a') : '';
                             break;
                         case PASSWORD:
                             fieldContext.type = "password";
                             break;
                         case NUMBER:
                             fieldContext.type = "number";
-                            break;
-                        case DATETIME:
-                            _.extend(fieldContext, {
-                                type:   "datetime",
-                                classn: "datetimepicker"
-                            });
-                            fieldContext.value = moment(fieldContext.value).format('YYYY/M/D h:mm a');
                             break;
                         case EMAIL:
                             fieldContext.type = "email";
@@ -324,6 +327,10 @@ FormBuilder = (function() {
                         case WEBURL:
                             fieldContext.type = "url";
                             break;
+                        case FILE:
+                            fieldContext.type = "file";
+                            break;
+							
                         case WYSIWYG:
                             fieldContext.field = new Handlebars.SafeString(Template.wysiwyg_editor(fieldContext));
                             break;
