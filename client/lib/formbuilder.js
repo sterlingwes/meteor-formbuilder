@@ -529,7 +529,8 @@ FormBuilder = (function() {
                                 case "addPool":
                                     var ev = Events.findOne(Router.get('target'));
                                     if(typeof data.pool === "string")   data.pool = data.pool.toLowerCase();
-                                    if(typeof data.round === "string")  data.round = data.round.toLowerCase();
+                                    if(typeof data.round === "string")  data.round = data.round.toLowerCase().replace('round:','');
+
                                     if(!charNumsOnly.test(data.pool) || !charNumsOnly.test(data.round))
                                         return Toast.error('Invalid characters used in Pool or Round name.');
                                     
