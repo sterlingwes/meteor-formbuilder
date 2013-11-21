@@ -347,6 +347,7 @@ FormBuilder = (function() {
                             
                         case SELECT:
                         case SELECTMULTI:
+                            if(!vals[field.name])   vals[field.name] = "";
                             fieldContext.option = _.without(_.map(getFormOpts(field.opts), function(o) {
                                 var ret = false;
                                 if(typeof o === "string")
