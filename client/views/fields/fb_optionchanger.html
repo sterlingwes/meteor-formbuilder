@@ -1,0 +1,13 @@
+<template name="formBuilder_optionchanger">
+    <label for="{{name}}">
+        {{{label}}}
+        
+        {{#if hint}}
+            <i class="icon-question-sign fb_formhelp" data-hint="{{hint}}"></i>
+        {{/if}}
+    </label>
+    <span class="optionchanger_options" id="{{name}}_options">{{options value}}</span>
+    <input type="text" name="{{name}}_input" id="{{name}}_input" class="{{classn}}" {{autofocus}}>
+    <input type="hidden" name="{{name}}" id="{{name}}" class="{{classn}}" value="{{value}}">
+    <button type="button" name="{{name}}_add" id="{{name}}_add" class="pure-button">Add Option</button>
+</template>

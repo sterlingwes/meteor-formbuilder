@@ -1,4 +1,4 @@
-if(Handlebars && typeof (Handlebars._default_helpers||{}).eachIs !== "function") {
+if(UI && typeof (UI._default_helpers||{}).eachIs !== "function") {
     /*
      * Adds the {{#eachIs}} block helper to handlebars templates
      *
@@ -9,30 +9,31 @@ if(Handlebars && typeof (Handlebars._default_helpers||{}).eachIs !== "function")
      * - __isLast: this is the last item in the list
      * - __count: index of the current item in the list (zero-indexed)
      */
-    Handlebars.registerHelper('eachIs', function(context, options) {
-        var ret = "";
+    /*UI.registerHelper('eachIs', function() {
+        var ret = ""
+          , context = this;
+        console.log('eachIs', this);
         if(!context)    return ret;
         for(var i=0, j=context.length; i<j; i++) {
             if(typeof context[i] !== "object")
                 context[i] = {
                     item:   context[i]
                 };
-            var newCtx = _.extend(context[i], {
+            _.extend(context[i], {
                 __isFirst:  i==0,
                 __isMiddle: i!=0 && i!=(j-1),
                 __isLast:   i==(j-1),
                 __count:    i
             });
-            ret = ret + options.fn(newCtx);
         }
-        return ret;
-    });
+        return Template.formBuilder_field;
+    });*/
 }
 
 /*
  * Hack for Spark landmark naming issue, see https://github.com/meteor/meteor/issues/281#issuecomment-16191927
  */
-Handlebars.registerHelper('labelBranch', function (label, options) {
+UI.registerHelper('labelBranch', function (label, options) {
   var data = this;
   return Spark.labelBranch(label, function () {
     return options.fn(data);

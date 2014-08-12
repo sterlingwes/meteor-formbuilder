@@ -20,7 +20,7 @@ options = {
             text:   'Text-only field (label)',
             label:  'Label instead of Key',
             opts:   OPTIONS_TYPE,
-            show:   'field:value1|value2' // field is the one changing,
+            show:   'field=value1|value2' // field is the one changing,
             disable:true // disable field
         }
     },

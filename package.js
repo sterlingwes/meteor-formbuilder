@@ -20,6 +20,9 @@ Package.on_use(function(api) {
         'client/views/fields/fb_text.html',
         'client/views/fields/fb_textarea.html',
         'client/views/fields/fb_wysiwyg.html',
+        'client/views/fields/fb_optionchanger.html',
+        
+        'client/views/fields/fb_optionchanger.js',
         
         'client/lib/formbuilder.js',
         

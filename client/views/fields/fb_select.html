@@ -5,7 +5,7 @@
             <i class="icon-question-sign fb_formhelp" data-hint="{{hint}}"></i>
         {{/if}}
     </label>
-    <select name="{{name}}" id="{{name}}"{{#if size}} size="{{size}}"{{/if}} {{multiple}} {{autofocus}}>
+    <select name="{{name}}" id="{{name}}" size={{size}} multiple={{multiple}} autofocus={{autofocus}}>
         {{#each option}}
             <option value="{{value}}" {{selected}}>{{text}}</option>
         {{/each}}

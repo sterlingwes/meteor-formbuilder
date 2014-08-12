@@ -20,6 +20,7 @@ FormBuilder = (function() {
         MULTITEXT=      18,
         SORTABLE=       19,
 		FILE=			100,
+        OPTIONCHANGER=  101,
         
         getFieldTpl = function(code) {
             if(typeof code === "string")    return code;
@@ -41,6 +42,8 @@ FormBuilder = (function() {
                     return 'formBuilder_sortable';
                 case WYSIWYG:
                     return 'formBuilder_wysiwyg';
+                case OPTIONCHANGER:
+                    return 'formBuilder_optionchanger';
                     
                 case TEXT:
                 case TYPEAHEAD:
@@ -160,12 +163,12 @@ FormBuilder = (function() {
             var vals = form.serialize(),
                 data = {};
 				
-			// check for file inputs
-			var filesin = $('input[type=file]');
-			if(filesin.length)
-				_.each(filesin.get(), function(inp) {
-					if(inp.files)	data[inp.name] = inp.files;
-				});
+      			// check for file inputs
+      			var filesin = $('input[type=file]');
+      			if(filesin.length)
+      				_.each(filesin.get(), function(inp) {
+      					if(inp.files)	data[inp.name] = inp.files;
+      				});
     
             _.each(vals.split('&'),function(v) {
                 var pair = v.split('=');
@@ -212,6 +215,7 @@ FormBuilder = (function() {
                 // optional fields are ignored if "reqOnly=true", as are fields with no input types
                 
                 fields: function() {
+                  
                     var that = this,
                         schema = this.proto && this.proto._simpleSchema && this.proto._simpleSchema._schema,
                         whitelist = typeof this.whitelist === "function" ? this.whitelist() : this.whitelist;
@@ -221,7 +225,7 @@ FormBuilder = (function() {
                         schema = _.extend(_.clone(schema || {}), _.clone(this.schema));
                         keys = _.keys(schema);
                         
-                        return _.filter(_.map(keys, function(key) {
+                        var fields = _.map(_.filter(_.map(keys, function(key) {
                             var augment = {
                                 name:   key
                             };
@@ -233,7 +237,16 @@ FormBuilder = (function() {
                             if(that.reqOnly)
                                 return !!f.input && !f.optional;
                             return !!f.input || !!f.text;
-                        });
+                        }), function(f,i,l) {
+                          return _.extend(f, {
+                            __isFirst:  i===0,
+                            __isMiddle: i!==0 && i!=(l.length-1),
+                            __isLast:   i==(l.length-1),
+                            __count:    i,
+                            __pctx:     this
+                          });
+                        }.bind(this));
+                        return fields;
                     } else
                         return false;
                 },
@@ -254,7 +267,7 @@ FormBuilder = (function() {
                 // determine if a field is showable (if an option list has only one option it's hidden
                 // with the value set to the one option value
                 
-                fieldShow: function(parent) {
+                fieldShow: function() {
                     if([SixC.Forms.SELECT,SixC.Forms.SELECTMULTI].indexOf(this.input) != -1 && !this.showAnyway) {
                         return getFormOpts(this.opts).length > 1;
                     }
@@ -272,110 +285,125 @@ FormBuilder = (function() {
                 },
                 
                 // core logic for building our form fields
-                // - field: current field we're building
-                // - parent: the context object passed to formBuilder
+                // - this / field: the current field we're rendering
                 
-                buildInput: function(field,parent) {
+                getInputTemplate: function() {
                     
                     var ret = '',
-                        fieldContext = _.extend({}, field);
+                        field = this;
                     
                     if(!field.input && field.text) {
-                        fieldContext.value = new Handlebars.SafeString(field.text);
-                        return new Handlebars.SafeString(Template['formBuilder_text'](fieldContext));
+                        return 'formBuilder_text';
                     }
                     else if(!field.input)
-                        return; // don't continue if there's no field type otherwise
+                        return ''; // don't continue if there's no field type otherwise
                     
-                    var vals = parent && "values" in parent ? parent.values||{} : {};
-                    if(typeof vals === "function")  vals = vals() || {};
-            
-                    if(vals[field.name])    fieldContext.value = vals[field.name];
-                    if(!fieldContext.label) fieldContext.label = field.name;
-                    if(field.__isFirst)     fieldContext.autofocus = "autofocus";
-                    if(field.multi)         fieldContext.multiple = "multiple";
-                    
-                    if(typeof field.hint === "string")
-                        fieldContext.hint = quoteAttr(field.hint);
-                    
-                    switch(field.input) {
-                        
-                        // all use base input field with unique type
-                        case TEXT:
-                            fieldContext.type = "text";
-                            break;
-                        case DATE:
-                        case DATETIME:
-                            _.extend(fieldContext, {
-                                type:   "text",     // consider using native (check first)
-                                classn: field.input==DATETIME ? "datetimepicker" : "datepicker"
-                            });
-							fieldContext.value = fieldContext.value ? moment(fieldContext.value).format('YYYY/M/D h:mm a') : '';
-                            break;
-                        case PASSWORD:
-                            fieldContext.type = "password";
-                            break;
-                        case NUMBER:
-                            fieldContext.type = "number";
-                            break;
-                        case EMAIL:
-                            fieldContext.type = "email";
-                            break;
-                        case PHONE:
-                            fieldContext.type = "phone";
-                            break;
-                        case WEBURL:
-                            fieldContext.type = "url";
-                            break;
-                        case FILE:
-                            fieldContext.type = "file";
-                            break;
-							
-                        case WYSIWYG:
-                            fieldContext.field = new Handlebars.SafeString(Template.wysiwyg_editor(fieldContext));
-                            break;
-                            
-                        case SORTABLE:
-                            var sortablelist = getFormOpts(field.opts);
-                            if(_.isArray(vals[field.name]))
-                                sortablelist = _.sortBy(sortablelist, function(li,i) {
-                                    return vals[field.name].indexOf(li.value);
-                                });
-                            fieldContext.list = sortablelist;
-                            fieldContext.field = new Handlebars.SafeString(Template.sortable(fieldContext));
-                            break;
-                            
-                        case SELECT:
-                        case SELECTMULTI:
-                            if(!vals[field.name])   vals[field.name] = "";
-                            fieldContext.option = _.without(_.map(getFormOpts(field.opts), function(o) {
-                                var ret = false;
-                                if(typeof o === "string")
-                                    o = {value: o, text: o};
-                                
-                                ret = {
-                                    text:   o.text || o.value,
-                                    value:  typeof o.value !== "string" && typeof o.value !== "number" ? o.text : o.value
-                                };
-                                
-                                if((_.isArray(vals[field.name]) && vals[field.name].indexOf(o.value||o.text)!=-1)
-                                    || vals[field.name]==(o.value||o.text))
-                                        ret.selected="selected";
-                                
-                                return ret;
-                                
-                            }),false);
-                            
-                            if(field.input==SELECTMULTI) {
-                                fieldContext.multiple = "multiple";
-                                fieldContext.size = fieldContext.size || _.min([5,fieldContext.option.length]);
-                            }
-                            break;
-                    }
-                    
-                    return new Handlebars.SafeString(Template[getFieldTpl(field.input)](fieldContext));
+                    return getFieldTpl(field.input);
                     
                 },
+                
+                // builds the field context (data passed to the template named above)
+                
+                getInputContext: function() {
+                      
+                      var field = this,
+                          parent = this.__pctx,
+                          fieldContext = _.extend({}, field);
+                      
+                      if(!field.input && field.text) {
+                          fieldContext.value = field.text;
+                      }
+                      else if(!field.input)
+                          return {}; // don't continue if there's no field type otherwise
+                      
+                      var vals = parent && "values" in parent ? parent.values||{} : {};
+                      if(typeof vals === "function")  vals = vals() || {};
+  
+                      if(vals[field.name])    fieldContext.value = vals[field.name];
+                      if(!fieldContext.label) fieldContext.label = field.name;
+                      if(field.__isFirst)     fieldContext.autofocus = true;
+                      if(field.multi)         fieldContext.multiple = true;
+                      
+                      if(typeof field.hint === "string")
+                          fieldContext.hint = quoteAttr(field.hint);
+                      
+                      switch(field.input) {
+                          
+                          // all use base input field with unique type
+                          case TEXT:
+                              fieldContext.type = "text";
+                              break;
+                          case DATE:
+                          case DATETIME:
+                              _.extend(fieldContext, {
+                                  type:   "text",     // consider using native (check first)
+                                  classn: field.input==DATETIME ? "datetimepicker" : "datepicker"
+                              });
+                              fieldContext.value = fieldContext.value ? moment(fieldContext.value).format('YYYY/M/D h:mm a') : '';
+                              break;
+                          case PASSWORD:
+                              fieldContext.type = "password";
+                              break;
+                          case NUMBER:
+                              fieldContext.type = "number";
+                              break;
+                          case EMAIL:
+                              fieldContext.type = "email";
+                              break;
+                          case PHONE:
+                              fieldContext.type = "phone";
+                              break;
+                          case WEBURL:
+                              fieldContext.type = "url";
+                              break;
+                          case FILE:
+                              fieldContext.type = "file";
+                              break;
+                
+                          case WYSIWYG:
+                              fieldContext.field = 'wysiwyg_editor';
+                              break;
+                              
+                          case SORTABLE:
+                              var sortablelist = getFormOpts(field.opts);
+                              if(_.isArray(vals[field.name]))
+                                  sortablelist = _.sortBy(sortablelist, function(li,i) {
+                                      return vals[field.name].indexOf(li.value);
+                                  });
+                              fieldContext.list = sortablelist;
+                              fieldContext.field = 'sortable';
+                              break;
+                              
+                          case SELECT:
+                          case SELECTMULTI:
+                              if(!vals[field.name])   vals[field.name] = "";
+                              fieldContext.option = _.without(_.map(getFormOpts(field.opts), function(o) {
+                                  var ret = false;
+                                  if(typeof o === "string")
+                                      o = {value: o, text: o};
+                                  
+                                  ret = {
+                                      text:   o.text || o.value,
+                                      value:  typeof o.value !== "string" && typeof o.value !== "number" ? o.text : o.value
+                                  };
+                                  
+                                  if((_.isArray(vals[field.name]) && vals[field.name].indexOf(o.value||o.text)!=-1)
+                                      || vals[field.name]==(o.value||o.text))
+                                          ret.selected="selected";
+                                  
+                                  return ret;
+                                  
+                              }),false);
+                              
+                              if(field.input==SELECTMULTI) {
+                                  fieldContext.multiple = "multiple";
+                                  fieldContext.size = fieldContext.size || _.min([5,fieldContext.option.length]);
+                              }
+                              break;
+                      }
+                      
+                      return fieldContext;
+                  },
                 
                 // class to apply to a field group depending on the input type
                 
@@ -392,6 +420,7 @@ FormBuilder = (function() {
                         case SixC.Forms.WYSIWYG:
                         case SixC.Forms.TYPEAHEAD:
                         case SixC.Forms.PASSWORD:
+                        case SixC.Forms.OPTIONCHANGER:
                             return "pure-control-group";
                         case SixC.Forms.CHECKBOX:
                         default:
@@ -649,14 +678,20 @@ FormBuilder = (function() {
                     _.each(show, function(s) {
                         var parts = s.show.split(/=|\|/),
                             field = parts.shift(),
-                            el = $('#'+field),
-                            target = $('#'+s.name);
+                            el = $('#'+field.replace(/\./,'\\.')), // catch jQuery issue with element IDs that contain dots
+                            target = $('#'+s.name.replace(/\./,'\\.'));
                 
-                        el.change(function(evt) {
+                        function showCheck(evt) {
                             if(parts.indexOf(evt.target.value)!=-1)
                                 target.closest('div').removeClass('hidden');
                             else
                                 target.closest('div').addClass('hidden');
+                        }
+                        
+                        el.change(showCheck);
+                        
+                        showCheck({
+                            target: { value: el.val ? el.val() : '' }
                         });
                     });
                     

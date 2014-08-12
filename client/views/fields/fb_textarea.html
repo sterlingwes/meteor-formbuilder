@@ -5,7 +5,7 @@
             <i class="icon-question-sign fb_formhelp" data-hint="{{hint}}"></i>
         {{/if}}
     </label>
-    <textarea name="{{name}}" id="{{name}}"{{#if __first}} autocomplete="autocomplete"{{/if}}>
+    <textarea name="{{name}}" id="{{name}}" autocomplete={{__first}}>
         {{value}}
     </textarea>
 </template>
