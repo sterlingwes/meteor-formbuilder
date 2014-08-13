@@ -19,8 +19,9 @@ FormBuilder = (function() {
         RADIO=          17,
         MULTITEXT=      18,
         SORTABLE=       19,
-		FILE=			100,
+		    FILE=			      100,
         OPTIONCHANGER=  101,
+        TAGS=           102,
         
         getFieldTpl = function(code) {
             if(typeof code === "string")    return code;
@@ -52,7 +53,7 @@ FormBuilder = (function() {
                 case NUMBER:
                 case PHONE:
                 case WEBURL:
-				case FILE:
+				        case FILE:
                 default:
                     return 'formBuilder_input';
     
@@ -318,7 +319,6 @@ FormBuilder = (function() {
                       
                       var vals = parent && "values" in parent ? parent.values||{} : {};
                       if(typeof vals === "function")  vals = vals() || {};
-  
                       if(vals[field.name])    fieldContext.value = vals[field.name];
                       if(!fieldContext.label) fieldContext.label = field.name;
                       if(field.__isFirst)     fieldContext.autofocus = true;
@@ -358,6 +358,10 @@ FormBuilder = (function() {
                               break;
                           case FILE:
                               fieldContext.type = "file";
+                              break;
+                          case TAGS:
+                              fieldContext.type = "text";
+                              fieldContext.classn = "tagsinput";
                               break;
                 
                           case WYSIWYG:
@@ -421,6 +425,7 @@ FormBuilder = (function() {
                         case SixC.Forms.TYPEAHEAD:
                         case SixC.Forms.PASSWORD:
                         case SixC.Forms.OPTIONCHANGER:
+                        case SixC.Forms.TAGS:
                             return "pure-control-group";
                         case SixC.Forms.CHECKBOX:
                         default:
@@ -477,6 +482,10 @@ FormBuilder = (function() {
                         
                         sortable = _.find(schema, function(cfg) {
                             return cfg.input==SixC.Forms.SORTABLE;
+                        }),
+                        
+                        tagsinput = _.find(schema, function(cfg) {
+                            return cfg.input==SixC.Forms.TAGS;
                         });
                     
                     if(multitext)   {
@@ -490,6 +499,10 @@ FormBuilder = (function() {
                         data[sortable.name] = _.without(_.map($('.sortable').children(), function(child) {
                             return $(child).data('id');
                         }), false, undefined, null);
+                    }
+                    
+                    if(tagsinput) {
+                        
                     }
                     
                     // check if we had an HTML editor

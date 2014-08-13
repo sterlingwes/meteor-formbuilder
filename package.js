@@ -7,6 +7,7 @@ Package.on_use(function(api) {
     api.use('standard-app-packages');
     api.use('external-file-loader');
     api.use('session-extras');
+    api.use('selectize');
     
     api.export('FormBuilder','client');
     
@@ -23,6 +24,9 @@ Package.on_use(function(api) {
         'client/views/fields/fb_optionchanger.html',
         
         'client/views/fields/fb_optionchanger.js',
+        
+        'client/views/fields/fields.js',
+        'client/views/fields/selectize.css',
         
         'client/lib/formbuilder.js',
         
