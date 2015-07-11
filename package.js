@@ -1,13 +1,21 @@
 Package.describe({
-    summary: "FormBuilder - form generator for Meteor"
+    name: "formbuilder",
+    description: "Widget",
+    summary: "FormBuilder - form generator for Meteor",
+    author: "Wes Johnson",
+    version: "0.1.1",
+    git: "http://github.com/sterlingwes/meteor-formbuilder"
 });
 
 Package.on_use(function(api) {
-    
-    api.use('standard-app-packages');
-    api.use('external-file-loader');
-    api.use('session-extras');
-    api.use('selectize');
+
+    api.versionsFrom('1.0');
+    api.use('templating','client');
+
+    api.use(['ui','session','deps'],'client'); 
+    api.use('mrt:external-file-loader','client');
+    api.use('session-extras','client');
+    api.use('jeremy:selectize','client');
     
     api.export('FormBuilder','client');
     
